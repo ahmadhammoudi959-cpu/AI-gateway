@@ -1,5 +1,5 @@
 # Render Blueprint: Dashboard → New → Blueprint → choose this repository.
-# Creates the web service in Frankfurt (closest Render region to Egypt/Levant). The database is external (DATABASE_URL).
+# Creates the web service + a private Postgres database in Frankfurt (closest Render region to Egypt/Levant).
 services:
   - type: web
     name: ai-gateway
@@ -16,10 +16,10 @@ services:
         value: production
       - key: NODE_VERSION
         value: "22"
-      # Postgres connection string. Free option: a Neon project (neon.com) — copy its connection string here.
-      # (Render allows only one free Postgres per workspace, and it expires after 30 days.)
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: ai-gateway-db
+          property: connectionString
       # Encrypts the providers' API keys in the database. Keep a copy: if it changes,
       # the saved provider keys must be entered again.
       - key: ENCRYPTION_KEY
@@ -34,3 +34,11 @@ services:
       - key: DEFAULT_TIMEZONE
         value: Africa/Cairo
 
+databases:
+  - name: ai-gateway-db
+    region: frankfurt
+    # Smallest paid Render Postgres (the free one is limited to one per workspace and is deleted after 30 days).
+    plan: 0.1c-256mb
+    databaseName: ai_gateway
+    user: ai_gateway
+    ipAllowList: [] # private network only — reachable from the web service, not from the internet
