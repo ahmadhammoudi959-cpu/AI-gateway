@@ -5,9 +5,9 @@ services:
     name: ai-gateway
     runtime: node
     region: frankfurt
-    # Paid instance on purpose: free instances sleep after 15 idle minutes and the next AI request
-    # would wait ~1 minute to wake up. Change to "free" only for testing.
-    plan: 0.5c-512mb
+    # Free plan: sleeps after 15 idle minutes and the next request waits ~1 minute to wake it up.
+    # For production switch to a paid instance, e.g. 0.5c-512mb.
+    plan: free
     buildCommand: npm ci --omit=dev
     startCommand: node src/server.js
     healthCheckPath: /healthz
@@ -37,7 +37,9 @@ services:
 databases:
   - name: ai-gateway-db
     region: frankfurt
-    plan: 0.1c-256mb
+    # Free Postgres expires 30 days after creation (14-day grace, then deleted with its data).
+    # Upgrade it from the Render dashboard (e.g. 0.1c-256mb) before then — the data is kept.
+    plan: free
     databaseName: ai_gateway
     user: ai_gateway
     ipAllowList: [] # private network only — reachable from the web service, not from the internet
