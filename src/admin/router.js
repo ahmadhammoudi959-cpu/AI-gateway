@@ -729,9 +729,6 @@ export function createAdminRouter({ cfg, db, catalog, settings, alerts, rl, ciph
     return upstreamModels.map((m) => {
       const preset = byNorm.get(normalizeModelName(m.id.split('/').pop()));
       const fields = preset ? { ...presetToModel(preset), alias: m.id, upstream_model: m.id } : null;
-      if (!fields && m.pricing) {
-        Object.assign(m, { suggested: { input_price: m.pricing.in, output_price: m.pricing.out } });
-      }
       return {
         id: m.id,
         name: m.name || preset?.label || '',
@@ -739,6 +736,8 @@ export function createAdminRouter({ cfg, db, catalog, settings, alerts, rl, ciph
         supported: !isUnsupportedModel(m.id),
         preset: fields,
         pricing: m.pricing,
+        // Providers that publish prices in their model list (OpenRouter) pre-fill the import.
+        suggested: !fields && m.pricing ? { input_price: m.pricing.in, output_price: m.pricing.out } : null,
         exists: taken.has(m.id),
         alias_taken: aliases.has(m.id),
       };

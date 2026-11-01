@@ -31,7 +31,17 @@ export async function startMock() {
       if (req.headers.authorization !== `Bearer ${OPENAI_KEY}`) {
         return json(401, { error: { message: `Incorrect API key provided: ${req.headers.authorization}` } });
       }
-      if (url === '/openai/v1/models') return json(200, { object: 'list', data: [{ id: 'gpt-test' }, { id: 'gpt-4o-mini-2024-07-18' }, { id: 'whisper-1' }] });
+      if (url === '/openai/v1/models') {
+        return json(200, {
+          object: 'list',
+          data: [
+            { id: 'gpt-test' },
+            { id: 'gpt-4o-mini-2024-07-18' },
+            { id: 'whisper-1' },
+            { id: 'vendor/cool-model', pricing: { prompt: '0.000002', completion: '0.000008' } },
+          ],
+        });
+      }
       if (url === '/openai/v1/embeddings') {
         return json(200, { object: 'list', data: [{ object: 'embedding', index: 0, embedding: [0.1, 0.2] }], model: body.model, usage: { prompt_tokens: 10, total_tokens: 10 } });
       }

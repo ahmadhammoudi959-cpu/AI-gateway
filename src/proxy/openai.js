@@ -33,6 +33,8 @@ export async function openaiChat({ model, body, res, signal, state }) {
   }
   // Always ask for usage on streams — that is how we bill exactly.
   if (stream) payload.stream_options = { ...(body.stream_options || {}), include_usage: true };
+  // OpenRouter adds the exact charged cost to `usage` when usage accounting is on.
+  if (p.preset === 'openrouter' && payload.usage == null) payload.usage = { include: true };
 
   const url = providerUrl(p, 'chat/completions');
   const send = () =>

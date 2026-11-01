@@ -135,6 +135,8 @@ test('setup: provider test lists upstream models and matches reference prices', 
   const mini = imp.find((m) => m.id === 'gpt-4o-mini-2024-07-18');
   assert.equal(mini.preset.input_price, 0.15);
   assert.equal(imp.find((m) => m.id === 'whisper-1').supported, false);
+  // OpenRouter-style price lists pre-fill models that have no reference price
+  assert.deepEqual(imp.find((m) => m.id === 'vendor/cool-model').suggested, { input_price: 2, output_price: 8 });
   assert.ok(ctx.anthropicProvider.import.find((m) => m.id === 'claude-haiku-4-5-20251001').preset);
   assert.match(ctx.sys.key, /^sk-gw-/);
 });
