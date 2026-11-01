@@ -67,6 +67,8 @@ async function newSystem(extra) {
 before(async () => {
   mock = await startMock();
   const cfg = loadConfig({
+    // Set TEST_DATABASE_URL to run the same suite against a real Postgres server.
+    DATABASE_URL: process.env.TEST_DATABASE_URL || '',
     DATA_DIR: 'memory://',
     ENCRYPTION_KEY: 'test-encryption-key',
     SESSION_SECRET: 'test-session-secret',
