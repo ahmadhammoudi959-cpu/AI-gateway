@@ -305,6 +305,8 @@ export function AppPage({ id }) {
       <div class="sheet-pad stack">
         <${CodeTabs} tabs=${envTabs({ baseUrl: data.base_url, apiKey: shownKey, anthropicModel, model: chatModel })} />
         <p class="small faint">المفتاح يظهر مختصراً هنا لأنه محفوظ مشفّراً باتجاه واحد. إذا لم يكن محفوظاً لديك، أنشئ مفتاحاً جديداً.</p>
+        <p class="small muted">صفحة متابعة الاستهلاك لصاحب التطبيق (يدخلها بنفس المفتاح):
+          <a class="ltr" href=${`${data.base_url}/portal`} target="_blank" rel="noopener">${data.base_url}/portal</a></p>
         <div class="table-wrap">
           <table class="table">
             <thead><tr><th>المفتاح</th><th>الاسم</th><th>أُنشئ</th><th>آخر استخدام</th><th>الحالة</th><th></th></tr></thead>
