@@ -205,22 +205,38 @@ async function migrate(db) {
   );
 }
 
+/**
+ * Builds pg options from a connection string. SSL is on when the URL asks for it (sslmode=require,
+ * e.g. Neon) or the host is a public domain name (e.g. a Render external URL); off for internal
+ * hosts (Render private network "dpg-…", docker "db", localhost). DATABASE_SSL=true/false overrides.
+ */
+export function pgConnection(url, sslSetting) {
+  const u = new URL(url);
+  const mode = (u.searchParams.get('sslmode') || '').toLowerCase();
+  u.searchParams.delete('sslmode');
+  u.searchParams.delete('channel_binding');
+  const host = u.hostname;
+  const isLocal = host === 'localhost' || /^[\d.]+$/.test(host) || host.includes(':') || !host.includes('.');
+  let want;
+  if (sslSetting != null && sslSetting !== '') want = ['1', 'true', 'yes', 'require'].includes(String(sslSetting).toLowerCase());
+  else if (mode) want = mode !== 'disable';
+  else want = !isLocal;
+  return { connectionString: u.toString(), ssl: want ? { rejectUnauthorized: false } : undefined };
+}
+
 export async function openDb(cfg, log = console) {
   let db;
+  if (!cfg.databaseUrl && cfg.isProd && !cfg.allowEmbeddedDb && cfg.dataDir !== 'memory://') {
+    throw new Error(
+      'DATABASE_URL is required in production. Add a Postgres connection string (e.g. a free Neon project) ' +
+        'in the service environment, or set ALLOW_EMBEDDED_DB=true if DATA_DIR is on a persistent disk.',
+    );
+  }
   if (cfg.databaseUrl) {
     pg.types.setTypeParser(NUMERIC, (v) => (v === null ? null : parseFloat(v)));
     pg.types.setTypeParser(INT8, (v) => (v === null ? null : Number(v)));
     pg.types.setTypeParser(DATE, (v) => v);
-    let connectionString = cfg.databaseUrl;
-    const wantSsl =
-      cfg.databaseSsl != null && cfg.databaseSsl !== ''
-        ? ['1', 'true', 'yes', 'require'].includes(String(cfg.databaseSsl).toLowerCase())
-        : /[?&]sslmode=(require|prefer|verify-ca|verify-full)/i.test(connectionString);
-    let ssl;
-    if (wantSsl) {
-      ssl = { rejectUnauthorized: false };
-      connectionString = connectionString.replace(/([?&])sslmode=[^&]*(&|$)/i, '$1').replace(/[?&]$/, '');
-    }
+    const { connectionString, ssl } = pgConnection(cfg.databaseUrl, cfg.databaseSsl);
     const pool = new pg.Pool({ connectionString, ssl, max: Number(process.env.PG_POOL_MAX || 10) });
     pool.on('error', (e) => log.error('[db] idle client error:', e.message));
     db = {
@@ -261,9 +277,6 @@ export async function openDb(cfg, log = console) {
       close: () => lite.close(),
     };
     if (!cfg.quiet) log.info(`[db] embedded database (PGlite) at ${dir}`);
-    if (cfg.isProd) {
-      log.warn('[db] NODE_ENV=production without DATABASE_URL: data lives in DATA_DIR — make sure it is on a persistent disk.');
-    }
   }
   await migrate(db);
   return db;

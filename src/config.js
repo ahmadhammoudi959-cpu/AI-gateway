@@ -31,7 +31,9 @@ export function loadConfig(env = process.env) {
     bodyLimit: env.BODY_LIMIT || '25mb',
     telegramApiBase: (env.TELEGRAM_API_BASE || 'https://api.telegram.org').replace(/\/+$/, ''),
     corsOrigins: env.CORS_ORIGINS || '*',
-    jobsIntervalMs: Number(env.JOBS_INTERVAL_MS || 10 * 60 * 1000),
+    // Hourly is enough (renewals also happen on each request) and lets serverless databases sleep.
+    jobsIntervalMs: Number(env.JOBS_INTERVAL_MS || 60 * 60 * 1000),
+    allowEmbeddedDb: bool(env.ALLOW_EMBEDDED_DB),
     disableJobs: bool(env.DISABLE_JOBS),
     quiet: bool(env.QUIET),
   };
