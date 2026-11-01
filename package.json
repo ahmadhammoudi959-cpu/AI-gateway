@@ -1,0 +1,26 @@
+{
+  "name": "ai-gateway",
+  "version": "1.0.0",
+  "private": true,
+  "description": "منصة توزيع الذكاء الاصطناعي — بوابة API موحدة مع باقات وحدود استهلاك شهرية",
+  "type": "module",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=20.10"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed:demo": "node src/seed-demo.js",
+    "test": "node --test --test-concurrency=1 test/*.test.js"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.14",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/ibm-plex-sans-arabic": "^5.3.0",
+    "express": "^5.3.0",
+    "htm": "^3.1.1",
+    "pg": "^8.23.1",
+    "undici": "^8.12.3"
+  }
+}

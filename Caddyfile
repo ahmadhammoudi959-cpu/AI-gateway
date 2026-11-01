@@ -1,0 +1,6 @@
+{$DOMAIN} {
+	# flush_interval -1 streams AI responses (SSE) to the apps immediately.
+	reverse_proxy app:3000 {
+		flush_interval -1
+	}
+}

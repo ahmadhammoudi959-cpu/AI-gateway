@@ -1,0 +1,43 @@
+# Render Blueprint: Dashboard → New → Blueprint → choose this repository.
+# Creates the web service + a private Postgres database in Frankfurt (closest Render region to Egypt/Levant).
+services:
+  - type: web
+    name: ai-gateway
+    runtime: node
+    region: frankfurt
+    # Paid instance on purpose: free instances sleep after 15 idle minutes and the next AI request
+    # would wait ~1 minute to wake up. Change to "free" only for testing.
+    plan: 0.5c-512mb
+    buildCommand: npm ci --omit=dev
+    startCommand: node src/server.js
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-gateway-db
+          property: connectionString
+      # Encrypts the providers' API keys in the database. Keep a copy: if it changes,
+      # the saved provider keys must be entered again.
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: SESSION_SECRET
+        generateValue: true
+      # First admin account — Render asks for these when the Blueprint is created.
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: DEFAULT_TIMEZONE
+        value: Africa/Cairo
+
+databases:
+  - name: ai-gateway-db
+    region: frankfurt
+    plan: 0.1c-256mb
+    databaseName: ai_gateway
+    user: ai_gateway
+    ipAllowList: [] # private network only — reachable from the web service, not from the internet
